@@ -1,0 +1,39 @@
+Create additional EBS Volume , fdisk and mount it.
+1. create EBS volume
+2. attach to instance
+3. format the disk
+   fdisk <disk name>
+    n, p, w
+4. using lsblk check the partition
+5. mkfs.ext4 /dev/xvdf1  - make filesystem
+6. copy uuid
+7. mkdir /dockerdata
+8. nano /etc/fstab
+   UUID=<id>  /dockerdata ext4
+9. mount -a
+  test the filesystem
+  for I in {1..10};
+  >do
+  >echo $(date) > FILE-$I
+  >done
+
+Update dockerServiceDir-Change:
+  
+sudo systemctl stop docker.service
+  
+sudo systemctl stop docker.socket
+  
+sudo nano /lib/systemd/system/docker.service Add the following line with the custom directo
+  
+#ExecStart=/usr/bin/dockerd -H fd:// -- containerd=/run/containerd/containerd.sock
+  
+ExecStart=/usr/bin/dockerd --data-root /dockerdata -H fd:// --containerd=/run/containerd/containerd.sock
+
+sudo rsync -aqxP /var/lib/docker/ /dockerdata
+  
+sudo systemctl daemon-reload && sudo systemctl start docker
+  
+sudo systemctl status docker --no-pager
+  
+ps aux | grep -i docker | grep -v grep
+
