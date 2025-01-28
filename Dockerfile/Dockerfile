@@ -1,21 +1,26 @@
 FROM ubuntu:latest
-
-LABEL name="deepthi"
-
-ENV AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE \
-    AWS_SECRET_KEY_ID=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
-    AWS_DEFAULT_REGION=us-east-1
-    
-ARG T_VERSION='1.6.6' \
+LABEL name="saikiran"
+RUN mkdir /app 
+RUN groupadd appuser && useradd -r -g appuser appuser 
+WORKDIR /app 
+USER  appuser
+ENV AWS_ACCESS_KEY_ID=DUMMYKEY\
+    AWS_SECRET_KEY_ID=DUMMYKEY\
+    AWS_DEFAULT_REGION=US-EAST-1A
+COPY index.nginx-debian.html /var/www/html/
+COPY scorekeeper.js /var/www/html
+ADD  style.css /var/www/html
+ADD https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.zip /var/www/html
+ARG T_VERSION='1.6.6'\
     P_VERSION='1.8.0'
+EXPOSE 80
+RUN apt update && apt install -y jq net-tools curl wget unzip\
+    && apt install -y nginx iputils-ping 
 
-RUN apt update && apt install -y jq net-tools curl unzip wget \
-    && apt install -y nginx iputils-ping
-
-RUN wget https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip && \
-    wget https://releases.hashicorp.com/packer/${P_VERSION}/packer_${P_VERSION}_linux_amd64.zip && \
-    unzip terraform_${T_VERSION}_linux_amd64.zip && unzip packer_${P_VERSION}_linux_amd64.zip \
-    && chmod 777 terraform && chmod 777 packer \
-    && ./terraform version && ./packer version
-
+RUN wget https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip \
+    && wgt https://releases.hashicorp.com/packer/${P_VERSION}/packer_${P_VERSION}_linux_amd64.zip\
+    && unzip terraform_${T_VERSION}_linux_amd64.zip  && unzip packer_${P_VERSION}_linux_amd64.zip\
+    && chmod 777 terraform && chmod 777 packer\
+    && ./terraform version && ./packer version 
+USER  appuser
 CMD ["nginx","-g","daemon off;"]
