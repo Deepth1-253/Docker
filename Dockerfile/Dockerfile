@@ -1,7 +1,15 @@
 FROM ubuntu:latest
-LABEL name="saikiran"
-RUN mkdir /app 
-RUN groupadd appuser && useradd -r -g appuser appuser 
+# FROM gcr.io/distroless/static-debian11   <we can use distoless image as well as shown to reduce size>
+LABEL name="deepthi"
+RUN mkdir /app \
+    && groupadd appuser && useradd -r -g appuser appuser \
+    && apt update && apt install -y jq net-tools curl wget unzip\
+    && apt install -y nginx iputils-ping \
+    && wget https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip \
+    && wgt https://releases.hashicorp.com/packer/${P_VERSION}/packer_${P_VERSION}_linux_amd64.zip\
+    && unzip terraform_${T_VERSION}_linux_amd64.zip  && unzip packer_${P_VERSION}_linux_amd64.zip\
+    && chmod 777 terraform && chmod 777 packer\
+    && ./terraform version && ./packer version 
 WORKDIR /app 
 USER  appuser
 ENV AWS_ACCESS_KEY_ID=DUMMYKEY\
@@ -14,13 +22,6 @@ ADD https://releases.hashicorp.com/terraform/1.9.0/terraform_1.9.0_linux_amd64.z
 ARG T_VERSION='1.6.6'\
     P_VERSION='1.8.0'
 EXPOSE 80
-RUN apt update && apt install -y jq net-tools curl wget unzip\
-    && apt install -y nginx iputils-ping 
 
-RUN wget https://releases.hashicorp.com/terraform/${T_VERSION}/terraform_${T_VERSION}_linux_amd64.zip \
-    && wgt https://releases.hashicorp.com/packer/${P_VERSION}/packer_${P_VERSION}_linux_amd64.zip\
-    && unzip terraform_${T_VERSION}_linux_amd64.zip  && unzip packer_${P_VERSION}_linux_amd64.zip\
-    && chmod 777 terraform && chmod 777 packer\
-    && ./terraform version && ./packer version 
 USER  appuser
 CMD ["nginx","-g","daemon off;"]
